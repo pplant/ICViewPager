@@ -9,7 +9,7 @@
 #import "HostViewController.h"
 #import "ContentViewController.h"
 
-@interface HostViewController () <ViewPagerDataSource, ViewPagerDelegate>
+@interface HostViewController () <ICViewPagerDataSource, ICViewPagerDelegate>
 
 @property (nonatomic) NSUInteger numberOfTabs;
 
@@ -23,39 +23,30 @@
     
     self.dataSource = self;
     self.delegate = self;
+    self.initalIndex = 0;
     
     self.title = @"View Pager";
-    
-    // Keeps tab bar below navigation bar on iOS 7.0+
-    // if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7.0) {
-    //     self.edgesForExtendedLayout = UIRectEdgeNone;
-    // }
-    
     self.navigationItem.rightBarButtonItem = ({
         
         UIBarButtonItem *button;
-        button = [[UIBarButtonItem alloc] initWithTitle:@"Tab #5" style:UIBarButtonItemStylePlain target:self action:@selector(selectTabWithNumberFive)];
+        button = [[UIBarButtonItem alloc] initWithTitle:@"Reduce" style:UIBarButtonItemStylePlain target:self action:@selector(reduce)];
         
         button;
     });
     
 }
-- (void)viewDidAppear:(BOOL)animated {
-    
-    [super viewDidAppear:animated];
-    
-    [self performSelector:@selector(loadContent) withObject:nil afterDelay:3.0];
-    
+
+- (void)viewWillAppear:(BOOL)animated {
+    [super viewWillAppear:animated];
+    self.numberOfTabs = 0;
 }
 
-- (void)didReceiveMemoryWarning {
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+- (void) reduce{
+    self.numberOfTabs = 5;
 }
 
 #pragma mark - Setters
 - (void)setNumberOfTabs:(NSUInteger)numberOfTabs {
-    
     // Set numberOfTabs
     _numberOfTabs = numberOfTabs;
     
@@ -64,15 +55,8 @@
     
 }
 
-#pragma mark - Helpers
-- (void)selectTabWithNumberFive {
-    [self selectTabAtIndex:5];
-}
-- (void)loadContent {
-    self.numberOfTabs = 10;
-}
-
 #pragma mark - Interface Orientation Changes
+
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration {
     
     // Update changes after screen rotates
@@ -80,15 +64,17 @@
 }
 
 #pragma mark - ViewPagerDataSource
-- (NSUInteger)numberOfTabsForViewPager:(ViewPagerController *)viewPager {
+
+- (NSUInteger)numberOfTabsForViewPager:(ICViewPagerController *)viewPager {
     return self.numberOfTabs;
 }
-- (UIView *)viewPager:(ViewPagerController *)viewPager viewForTabAtIndex:(NSUInteger)index {
+
+- (UIView *)viewPager:(ICViewPagerController *)viewPager viewForTabAtIndex:(NSUInteger)index {
     
     UILabel *label = [UILabel new];
     label.backgroundColor = [UIColor clearColor];
     label.font = [UIFont systemFontOfSize:12.0];
-    label.text = [NSString stringWithFormat:@"Tab #%i", index];
+    label.text = [NSString stringWithFormat:@"Tab #%lu", (unsigned long)index];
     label.textAlignment = NSTextAlignmentCenter;
     label.textColor = [UIColor blackColor];
     [label sizeToFit];
@@ -96,47 +82,29 @@
     return label;
 }
 
-- (UIViewController *)viewPager:(ViewPagerController *)viewPager contentViewControllerForTabAtIndex:(NSUInteger)index {
+- (UIViewController *)viewPager:(ICViewPagerController *)viewPager contentViewControllerForTabAtIndex:(NSUInteger)index {
     
     ContentViewController *cvc = [self.storyboard instantiateViewControllerWithIdentifier:@"contentViewController"];
     
-    cvc.labelString = [NSString stringWithFormat:@"Content View #%i", index];
+    cvc.labelString = [NSString stringWithFormat:@"Content View #%lu", (unsigned long)index];
     
     return cvc;
 }
 
 #pragma mark - ViewPagerDelegate
-- (CGFloat)viewPager:(ViewPagerController *)viewPager valueForOption:(ViewPagerOption)option withDefault:(CGFloat)value {
-    
-    switch (option) {
-        case ViewPagerOptionStartFromSecondTab:
-            return 0.0;
-        case ViewPagerOptionCenterCurrentTab:
-            return 1.0;
-        case ViewPagerOptionTabLocation:
-            return 0.0;
-        case ViewPagerOptionTabHeight:
-            return 49.0;
-        case ViewPagerOptionTabOffset:
-            return 36.0;
-        case ViewPagerOptionTabWidth:
-            return UIInterfaceOrientationIsLandscape(self.interfaceOrientation) ? 128.0 : 96.0;
-        case ViewPagerOptionFixFormerTabsPositions:
-            return 1.0;
-        case ViewPagerOptionFixLatterTabsPositions:
-            return 1.0;
-        default:
-            return value;
-    }
+
+- (CGFloat)viewPager:(ICViewPagerController *)viewPager widthForTabAtIndex:(NSUInteger)index{
+    return 50.0;
 }
-- (UIColor *)viewPager:(ViewPagerController *)viewPager colorForComponent:(ViewPagerComponent)component withDefault:(UIColor *)color {
+
+- (UIColor *)viewPager:(ICViewPagerController *)viewPager colorForComponent:(ICViewPagerComponent)component withDefault:(UIColor *)color {
     
     switch (component) {
-        case ViewPagerIndicator:
+        case ICViewPagerIndicator:
             return [[UIColor redColor] colorWithAlphaComponent:0.64];
-        case ViewPagerTabsView:
+        case ICViewPagerTabsView:
             return [[UIColor lightGrayColor] colorWithAlphaComponent:0.32];
-        case ViewPagerContent:
+        case ICViewPagerContent:
             return [[UIColor darkGrayColor] colorWithAlphaComponent:0.32];
         default:
             return color;
